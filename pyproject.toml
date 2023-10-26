@@ -39,6 +39,7 @@ dependencies = [
     "pandas",
     "corner",
     "tqdm",
+    "netcdf4",
     "StrEnum" # introduced in py3.11, need to manually install for now
 ]
 
