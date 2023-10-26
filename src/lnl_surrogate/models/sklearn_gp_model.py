@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 from scipy.stats import halfnorm
@@ -79,7 +79,7 @@ class SklearnGPModel(Model):
             (train_in, train_out), (test_in, test_out), savedir, extra_kwgs
         )
 
-    def predict(self, x: np.ndarray) -> np.ndarray:
+    def predict(self, x: np.ndarray) -> Tuple[np.ndarray,np.ndarray,np.ndarray]:
         """Predict the output of the model for the given input."""
         # x_scaled = self._preprocess_input(x)
         x_scaled = x  # TODO: bug with scaling -- i might be scaling twice

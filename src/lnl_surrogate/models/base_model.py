@@ -52,6 +52,11 @@ class Model(ABC, ModelMetrics):
         """
         pass
 
+    @abstractmethod
+    def predict(self, x: np.ndarray) -> np.ndarray:
+        """Predict the output of the model for the given input. (lower, mean, upper)"""
+        pass
+
     def _post_training(self, training_data, testing_data, savedir, extra_kwgs={}):
         """Post training processing."""
         self.trained = True
@@ -65,10 +70,7 @@ class Model(ABC, ModelMetrics):
         """Alias for train."""
         return self.train(inputs, outputs)
 
-    @abstractmethod
-    def predict(self, x: np.ndarray) -> np.ndarray:
-        """Predict the output of the model for the given input. (lower, mean, upper)"""
-        pass
+
 
     def __call__(self, *args, **kwargs):
         return self.predict(*args, **kwargs)

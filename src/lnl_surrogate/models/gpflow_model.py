@@ -9,14 +9,22 @@ from gpflow.monitor import ScalarToTensorBoard as ScalarCallback
 from ..logger import logger
 
 from .base_model import Model
+import os
 
 
 class GPFlowModel(Model):
     """GPFlow surrogate model"""
     def __init__(self):
+        super().__init__()
         self._model = None  # the model
         self.trained = False
         self.input_dim = None
+
+
+    @staticmethod
+    def saved_model_exists(savedir: str) -> bool:
+        """Check if a model exists in the given directory."""
+        return os.dir.exists(savedir)
 
     def train(
         self,
@@ -87,7 +95,7 @@ class GPFlowModel(Model):
         y_mean, y_var = pred(x)
         y_lower = y_mean - 1.96 * np.sqrt(y_var)
         y_upper = y_mean + 1.96 * np.sqrt(y_var)
-        return y_lower.numpy(), y_mean.numpy(), y_upper.numpy()
+        return y_lower.numpy().flatten(), y_mean.numpy().flatten(), y_upper.numpy().flatten()
 
     def save(self, savedir: str) -> None:
         """Save a model to a file."""

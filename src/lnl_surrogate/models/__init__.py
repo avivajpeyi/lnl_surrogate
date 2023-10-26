@@ -3,38 +3,43 @@ from .gpflow_model import GPFlowModel
 from .sklearn_mlp_model import SklearnMlpModel
 from .sklearn_gp_model import SklearnGPModel
 
-from enum import Enum
+from enum import auto, EnumMeta
+from strenum import LowercaseStrEnum
+from typing import Union
 
 
-class ModelType(Enum):
+class ModelType(LowercaseStrEnum):
     """Model type enum"""
-    GPFlow = "gpflow"
-    SklearnGP = "sklearn_gp"
-    SklearnMLP = "sklearn_mlp"
-    TfDnn = "tf_dnn"
-
-    @staticmethod
-    def list():
-        """List of model types"""
-        return [m.value for m in ModelType]
+    GPFlow = auto()
+    SklearnGP = auto()
+    SklearnMLP = auto()
+    TfDnn = auto()
 
     @classmethod
-    def from_str(self, model_str: str):
-        """Get model class from string (case-insensitive)"""
-        model_str = model_str.lower()
-        if model_str == self.GPFlow.__name__.lower():
-            return GPFlowModel
-        elif model_str == self.SklearnGP.__name__.lower():
-            return SklearnGPModel
-        elif model_str == self.SklearnMLP.__name__.lower():
-            return SklearnMlpModel
-        elif model_str == self.TfDnn.__name__.lower():
-            return TfDnnModel
-        else:
-            raise ValueError(f"Model type {model_str} not recognised. Please choose from {self.list}")
+    def list(cls):
+        return [m.value for m in cls]
 
-    def __str__(self):
-        return self.value
+    @classmethod
+    def from_str(cls, model_type: str) -> "ModelType":
+        """Get model type from string"""
+        model_type = model_type.lower()
+        if model_type not in cls.list():
+            raise ValueError(f"Model type {model_type} not recognised. Please choose from {cls.list()}")
+        return cls(model_type)
 
-    def __repr__(self):
-        return self.value
+
+def load_model(model_type: Union[ModelType, str]):
+    """Load a model from a string or ModelType"""
+    if isinstance(model_type, str):
+        model_type = ModelType.from_str(model_type)
+
+    if model_type == ModelType.GPFlow:
+        return GPFlowModel
+    elif model_type == ModelType.SklearnGP:
+        return SklearnGPModel
+    elif model_type == ModelType.SklearnMLP:
+        return SklearnMlpModel
+    elif model_type == ModelType.TfDnn:
+        return TfDnnModel
+    else:
+        raise ValueError(f"Model type {model_type} not recognised. Please choose from {ModelType.list()}")

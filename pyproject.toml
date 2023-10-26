@@ -37,7 +37,9 @@ dependencies = [
     "matplotlib",
     "numpy",
     "pandas",
-    "corner"
+    "corner",
+    "tqdm",
+    "StrEnum" # introduced in py3.11, need to manually install for now
 ]
 
 [project.optional-dependencies]
