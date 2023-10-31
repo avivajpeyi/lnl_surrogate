@@ -81,3 +81,23 @@ class DataCache:
 
     def __len__(self):
         return len(self.x.sample)
+
+
+    @property
+    def x_array(self):
+        """Return the input data as a numpy array.
+        Each row is a sample, each column is a parameter.
+        """
+        return self.x.to_array().values.T
+
+
+    @property
+    def y_array(self):
+        """Return the input data as a numpy array.
+        Each row is a sample, each column is a parameter.
+        """
+        return self.y.to_array().values.T
+
+    @property
+    def in_shape(self):
+        return self.x_array.shape[1:]

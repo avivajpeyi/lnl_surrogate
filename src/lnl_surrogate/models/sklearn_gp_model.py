@@ -64,15 +64,16 @@ class SklearnGPModel(Model):
             test_out,
         ) = self._preprocess_and_split_data(inputs, outputs)
 
-        err = halfnorm.rvs(loc=0, scale=0.5, size=len(train_in))
-        self._model = GaussianProcessRegressor(
+        train_kwargs = dict(
             kernel=self.kernel,
             random_state=0,
             copy_X_train=False,
             n_restarts_optimizer=10,
-            alpha=err,
             normalize_y=True,
         )
+        #
+        # err = halfnorm.rvs(loc=0, scale=0.5, size=len(train_in))
+        self._model = GaussianProcessRegressor(**train_kwargs)
         self._model.fit(train_in, train_out)
 
         return self._post_training(

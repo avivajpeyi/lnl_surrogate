@@ -21,4 +21,6 @@ def test_cache(tmpdir):
     train, test = cache.train_test_split(frac_train=train_frac)
     # assert test size is 20% of full
     obtained_size = len(test) / len(cache)
-    assert np.isclose(obtained_size, 1 - train_frac)
+    assert np.isc
+    lose(obtained_size, 1 - train_frac)
+    assert cache.in_shape == (1, 5)

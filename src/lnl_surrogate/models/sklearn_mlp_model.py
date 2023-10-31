@@ -112,7 +112,7 @@ class SklearnMlpModel(Model):
     @staticmethod
     def saved_model_exists(savedir: str) -> bool:
         """Check if a model exists in the given directory."""
-        return os.path.exists(SklearnGPModel.model_fn(savedir))
+        return os.path.exists(SklearnMlpModel.model_fn(savedir))
 
     @staticmethod
     def model_fn(savedir: str):
