@@ -30,6 +30,7 @@ class GPFlowModel(Model):
         self,
         inputs: np.ndarray,
         outputs: np.ndarray,
+        unc: Optional[np.ndarray] = None,  # output uncertainties
         verbose: Optional[bool] = False,
         savedir: Optional[str] = None,
         log_dir: Optional[str] = "training_logs",
@@ -41,12 +42,18 @@ class GPFlowModel(Model):
             test_in,
             train_out,
             test_out,
-        ) = self._preprocess_and_split_data(inputs, outputs)
+            train_unc,
+            test_unc,
+        ) = self._preprocess_and_split_data(inputs, outputs, unc)
 
-        self._model = gpflow.models.GPR(
+        kwgs = dict(
             data=(train_in, train_out),
             kernel=gpflow.kernels.SquaredExponential(),
         )
+        if unc is not None:
+            kwgs["alpha"] = train_unc
+
+        self._model = gpflow.models.GPR(**kwgs)
         monitor = None
         if verbose:
             logdir = log_dir + "/" + self.current_time()

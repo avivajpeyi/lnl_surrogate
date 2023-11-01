@@ -20,7 +20,8 @@ class Model(ABC, ModelMetrics):
         self._model = None
         self.trained = False
         self.input_dim = None
-        self.scaler = StandardScaler()
+        # self.scaler = StandardScaler()
+        self.scaler = None
 
     @staticmethod
     @abstractmethod
@@ -42,7 +43,9 @@ class Model(ABC, ModelMetrics):
     @abstractmethod
     def train(
         self,
-        data: DataCache,
+        inputs: np.ndarray,
+        outputs: np.ndarray,
+        unc: Optional[np.ndarray] = None, # output uncertainties
         verbose: Optional[bool] = False,
         savedir: Optional[str] = None,
     ) -> Dict[str, "Metrics"]:
@@ -64,7 +67,12 @@ class Model(ABC, ModelMetrics):
         if savedir:
             self.save(savedir)
             self.plot_diagnostics(training_data, testing_data, savedir, extra_kwgs)
+        preds = self.predict(training_data[0])[1]
+        # check that the predictions are not all zero
+        if np.allclose(preds, 0):
+            raise ValueError("All predictions are zero")
         return self.train_test_metrics(training_data, testing_data)
+
 
     def fit(self, inputs, outputs):
         """Alias for train."""
@@ -89,9 +97,9 @@ class Model(ABC, ModelMetrics):
 
     def _preprocess_input(self, inputs):
         """Preprocess the input."""
-        return self.scaler.transform(inputs)
-
-    def _preprocess_and_split_data(self, input, output, test_size=0.2):
+        # return self.scaler.transform(inputs)
+        return inputs
+    def _preprocess_and_split_data(self, input, output, unc=None, test_size=0.2):
         """
         Preprocess and split data into training and testing sets.
         :param input:
@@ -99,6 +107,9 @@ class Model(ABC, ModelMetrics):
         :param test_size:
         :return: (train_in, test_in, train_out, test_out)
         """
+
+        if unc is not None:
+            output = np.hstack((output, unc))
 
         # self.scaler = StandardScaler()
         # input_scaled = self.scaler.fit_transform(input)
@@ -119,11 +130,20 @@ class Model(ABC, ModelMetrics):
             input_scaled, output, test_size=test_size
         )
 
+        if unc is not None:
+            train_unc, train_out = train_out[:, -1], train_out[:, :-1]
+            test_unc, test_out = test_out[:, -1], test_out[:, :-1]
+            train_unc = train_unc.reshape(-1, 1)
+            test_unc = test_unc.reshape(-1, 1)
+        else:
+            train_unc, test_unc = None, None
+
         logger.info(
             f"Training surrogate In({train_in.shape})-->Out({train_out.shape}) [testing:{len(test_out)}]"
         )
 
-        return train_in, test_in, train_out, test_out
+
+        return train_in, test_in, train_out, test_out, train_unc, test_unc
 
     def plot_diagnostics(self, train_data, test_data, savedir, extra_kwgs={}):
         """Plot diagnostics for the model."""

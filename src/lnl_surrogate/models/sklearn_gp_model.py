@@ -6,7 +6,7 @@ import numpy as np
 from scipy.stats import halfnorm
 from sklearn.base import BaseEstimator
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 from sklearn.metrics import r2_score
 
 from .base_model import Model
@@ -18,8 +18,6 @@ class SklearnGPModel(Model):
     """Scikit-learn GP (Gaussian process) surrogate model"""
     def __init__(self):
         super().__init__()
-        self.kernel = 1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3))
-
         # # diff between every pair of train_out values
         # err = np.min(np.diff(train_out, axis=0) ** 2)
 
@@ -27,19 +25,12 @@ class SklearnGPModel(Model):
         # It can also be interpreted as the variance of additional
         # Gaussian measurement noise on the training observations.
 
-        self._model = GaussianProcessRegressor(
-            kernel=self.kernel,
-            random_state=0,
-            copy_X_train=False,
-            n_restarts_optimizer=10,
-            alpha=0.1,
-            normalize_y=True,
-        )
 
     def train(
         self,
         inputs: np.ndarray,
         outputs: np.ndarray,
+        unc: Optional[np.ndarray] = None,  # output uncertainties
         verbose: Optional[bool] = False,
         savedir: Optional[str] = None,
         extra_kwgs={},
@@ -55,26 +46,28 @@ class SklearnGPModel(Model):
             n_targets=None, random_state=None
         )
 
-
         """
         (
             train_in,
             test_in,
             train_out,
             test_out,
-        ) = self._preprocess_and_split_data(inputs, outputs)
+            train_unc,
+            test_unc,
+        ) = self._preprocess_and_split_data(inputs, outputs, unc)
 
-        train_kwargs = dict(
-            kernel=self.kernel,
-            random_state=0,
-            copy_X_train=False,
-            n_restarts_optimizer=10,
-            normalize_y=True,
+        kernel = 1.0 * RBF(length_scale=1.0) + WhiteKernel(noise_level=1.0)
+        if unc is not None:
+            alpha = ((train_unc / train_out) ** 2).ravel()
+        else:
+            alpha = 1e-10
+        gp = GaussianProcessRegressor(
+            kernel=kernel,
+            alpha=alpha,
+            n_restarts_optimizer=100
         )
-        #
-        # err = halfnorm.rvs(loc=0, scale=0.5, size=len(train_in))
-        self._model = GaussianProcessRegressor(**train_kwargs)
-        self._model.fit(train_in, train_out)
+        gp.fit(train_in, train_out)
+        self._model = gp
 
         return self._post_training(
             (train_in, train_out), (test_in, test_out), savedir, extra_kwgs
@@ -84,11 +77,10 @@ class SklearnGPModel(Model):
         """Predict the output of the model for the given input."""
         # x_scaled = self._preprocess_input(x)
         x_scaled = x  # TODO: bug with scaling -- i might be scaling twice
-        y_mean, y_std = self._model.predict(x_scaled, return_std=True)
-        y_var = y_std**2
-        y_lower = y_mean - 1.96 * np.sqrt(y_var)
-        y_upper = y_mean + 1.96 * np.sqrt(y_var)
-        return y_lower, y_mean, y_upper
+        y, y_std = self._model.predict(x_scaled, return_std=True)
+        y_lower = y - 1.96 * y_std
+        y_upper = y + 1.96 * y_std
+        return y_lower, y, y_upper
 
     def save(self, savedir: str) -> None:
         """Save a model to a dir."""
