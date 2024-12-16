@@ -1,5 +1,6 @@
-import pytest
 import os
+
+import pytest
 
 TEST_DIR = "out_test"
 
