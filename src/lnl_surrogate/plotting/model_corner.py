@@ -42,9 +42,14 @@ def plot_model_corner(
         truths=kwgs.get("truths", None),
     )
     # plot of training and datapoints (no contours)
-    fig = corner(training_data[0], **__get_points_kwgs(train_color), **corner_kwgs)
     fig = corner(
-        testing_data[0], **__get_points_kwgs(test_color, 0.85), fig=fig, **corner_kwgs
+        training_data[0], **__get_points_kwgs(train_color), **corner_kwgs
+    )
+    fig = corner(
+        testing_data[0],
+        **__get_points_kwgs(test_color, 0.85),
+        fig=fig,
+        **corner_kwgs,
     )
 
     _s = training_data[0][:, 0]
@@ -80,7 +85,8 @@ def plot_model_corner(
     ]
     colors = [train_color, test_color, model_color]
     legend_elements = [
-        Line2D([0], [0], color=c, lw=4, label=l) for c, l in zip(colors, labels)
+        Line2D([0], [0], color=c, lw=4, label=l)
+        for c, l in zip(colors, labels)
     ]
     fig.legend(
         handles=legend_elements,

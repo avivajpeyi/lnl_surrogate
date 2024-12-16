@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Tuple
 
 import gpflow
@@ -7,19 +8,17 @@ from gpflow.monitor import ScalarToTensorBoard as ScalarCallback
 
 # scikit-learn train-test split
 from ..logger import logger
-
 from .base_model import Model
-import os
 
 
 class GPFlowModel(Model):
     """GPFlow surrogate model"""
+
     def __init__(self):
         super().__init__()
         self._model = None  # the model
         self.trained = False
         self.input_dim = None
-
 
     @staticmethod
     def saved_model_exists(savedir: str) -> bool:
@@ -66,7 +65,9 @@ class GPFlowModel(Model):
 
             tasks = []
             tasks += [gpflow.monitor.ModelToTensorBoard(logdir, self._model)]
-            tasks += [ScalarCallback(logdir, self._model.training_loss, "loss")]
+            tasks += [
+                ScalarCallback(logdir, self._model.training_loss, "loss")
+            ]
             tasks += [ScalarCallback(logdir, train_r2, "train_R2")]
             tasks += [ScalarCallback(logdir, test_r2, "test_R2")]
             tasks += [gpflow.monitor.ExecuteCallback(print_stats)]
@@ -86,13 +87,17 @@ class GPFlowModel(Model):
                 tf.TensorSpec(shape=[None, self.input_dim], dtype=tf.float64)
             ],
         )
-        return self._post_training((train_in, train_out), (test_in, test_out), savedir)
+        return self._post_training(
+            (train_in, train_out), (test_in, test_out), savedir
+        )
 
     def __train_m_pred(self, xnew):
         """Helper function for the predict method while training"""
         return self._model.predict_f(xnew, full_cov=False)
 
-    def predict(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def predict(
+        self, x: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Predict the output of the model for the given input."""
         if hasattr(self._model, "predict"):
             pred = self._model.predict
@@ -102,7 +107,11 @@ class GPFlowModel(Model):
         y_mean, y_var = pred(x)
         y_lower = y_mean - 1.96 * np.sqrt(y_var)
         y_upper = y_mean + 1.96 * np.sqrt(y_var)
-        return y_lower.numpy().flatten(), y_mean.numpy().flatten(), y_upper.numpy().flatten()
+        return (
+            y_lower.numpy().flatten(),
+            y_mean.numpy().flatten(),
+            y_upper.numpy().flatten(),
+        )
 
     def save(self, savedir: str) -> None:
         """Save a model to a file."""
@@ -131,5 +140,8 @@ class GPFlowModel(Model):
 
         er_st = "{}: <{:.2f}|{:.2f}>"
 
-        log = f"Loss:{train_l:.2f} | " f"{er_st.format('R^2', train_r2, test_r2)} "
+        log = (
+            f"Loss:{train_l:.2f} | "
+            f"{er_st.format('R^2', train_r2, test_r2)} "
+        )
         logger.info(log)

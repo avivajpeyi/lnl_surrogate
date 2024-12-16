@@ -16,6 +16,7 @@ MODEL_SAVE_FILE = "model.pkl"
 
 class SklearnGPModel(Model):
     """Scikit-learn GP (Gaussian process) surrogate model"""
+
     def __init__(self):
         super().__init__()
         # # diff between every pair of train_out values
@@ -24,7 +25,6 @@ class SklearnGPModel(Model):
         # alpha:
         # It can also be interpreted as the variance of additional
         # Gaussian measurement noise on the training observations.
-
 
     def train(
         self,
@@ -62,9 +62,7 @@ class SklearnGPModel(Model):
         else:
             alpha = 1e-10
         gp = GaussianProcessRegressor(
-            kernel=kernel,
-            alpha=alpha,
-            n_restarts_optimizer=100
+            kernel=kernel, alpha=alpha, n_restarts_optimizer=100
         )
         gp.fit(train_in, train_out)
         self._model = gp
@@ -73,7 +71,9 @@ class SklearnGPModel(Model):
             (train_in, train_out), (test_in, test_out), savedir, extra_kwgs
         )
 
-    def predict(self, x: np.ndarray) -> Tuple[np.ndarray,np.ndarray,np.ndarray]:
+    def predict(
+        self, x: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Predict the output of the model for the given input."""
         # x_scaled = self._preprocess_input(x)
         x_scaled = x  # TODO: bug with scaling -- i might be scaling twice

@@ -1,16 +1,15 @@
 import os
 import random
+from dataclasses import dataclass
 from itertools import repeat
 from typing import Dict, List, Optional
 
 import h5py
 import numpy as np
 import pandas as pd
+import xarray as xr
 from tqdm import tqdm
 from tqdm.contrib.concurrent import process_map
-import xarray as xr
-
-from dataclasses import dataclass
 
 
 @dataclass
@@ -26,23 +25,29 @@ class DataCache:
     - varying_params: the names of the varying parameters (X)
     - train_test_split(frac_train): split data into train and test sets based on frac_train (returns 2 DataCache objects)
     """
+
     x: xr.Dataset
     y: xr.Dataset
 
-
     @classmethod
-    def from_dataset(cls, d:xr.Dataset):
+    def from_dataset(cls, d: xr.Dataset):
         """Create a DataCache from an xarray dataset."""
         x = d[d.attrs["in_params"]]
         y = d[d.attrs["out_params"]]
         return cls(x, y)
 
     @classmethod
-    def from_dict(cls, x: Dict[str, np.ndarray], y: Dict[str, np.ndarray]) -> "DataCache":
+    def from_dict(
+        cls, x: Dict[str, np.ndarray], y: Dict[str, np.ndarray]
+    ) -> "DataCache":
         """Create a DataCache from a dictionary of numpy arrays."""
         coords = {"sample": np.arange(len(x[list(x.keys())[0]]))}
-        x = xr.Dataset({k: (["sample"], v) for k, v in x.items()}, coords=coords)
-        y = xr.Dataset({k: (["sample"], v) for k, v in y.items()}, coords=coords)
+        x = xr.Dataset(
+            {k: (["sample"], v) for k, v in x.items()}, coords=coords
+        )
+        y = xr.Dataset(
+            {k: (["sample"], v) for k, v in y.items()}, coords=coords
+        )
         return cls(x, y)
 
     def save(self, fname: str) -> None:
@@ -78,10 +83,8 @@ class DataCache:
             DataCache(test_data.x, test_data.y),
         ]
 
-
     def __len__(self):
         return len(self.x.sample)
-
 
     @property
     def x_array(self):
@@ -89,7 +92,6 @@ class DataCache:
         Each row is a sample, each column is a parameter.
         """
         return self.x.to_array().values.T
-
 
     @property
     def y_array(self):

@@ -5,12 +5,11 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from ..logger import logger
-
-from .utils import fmt_val_upper_lower
-from .model_metrics import ModelMetrics
 from ..data_cache import DataCache
+from ..logger import logger
 from ..plotting import plot_model_diagnostics
+from .model_metrics import ModelMetrics
+from .utils import fmt_val_upper_lower
 
 
 class Model(ABC, ModelMetrics):
@@ -45,7 +44,7 @@ class Model(ABC, ModelMetrics):
         self,
         inputs: np.ndarray,
         outputs: np.ndarray,
-        unc: Optional[np.ndarray] = None, # output uncertainties
+        unc: Optional[np.ndarray] = None,  # output uncertainties
         verbose: Optional[bool] = False,
         savedir: Optional[str] = None,
     ) -> Dict[str, "Metrics"]:
@@ -60,25 +59,30 @@ class Model(ABC, ModelMetrics):
         """Predict the output of the model for the given input. (lower, mean, upper)"""
         pass
 
-    def _post_training(self, training_data:DataCache, testing_data:DataCache, savedir, extra_kwgs={}):
+    def _post_training(
+        self,
+        training_data: DataCache,
+        testing_data: DataCache,
+        savedir,
+        extra_kwgs={},
+    ):
         """Post training processing."""
         self.trained = True
         self.input_dim = training_data[0].shape[1]
         if savedir:
             self.save(savedir)
-            self.plot_diagnostics(training_data, testing_data, savedir, extra_kwgs)
+            self.plot_diagnostics(
+                training_data, testing_data, savedir, extra_kwgs
+            )
         preds = self.predict(training_data[0])[1]
         # check that the predictions are not all zero
         if np.allclose(preds, 0):
             raise ValueError("All predictions are zero")
         return self.train_test_metrics(training_data, testing_data)
 
-
     def fit(self, inputs, outputs):
         """Alias for train."""
         return self.train(inputs, outputs)
-
-
 
     def __call__(self, *args, **kwargs):
         return self.predict(*args, **kwargs)
@@ -86,7 +90,9 @@ class Model(ABC, ModelMetrics):
     def prediction_str(self, x: np.ndarray) -> Union[str, List[str]]:
         """Format prediction as a latex string with error bars."""
         lower, mean, upper = self.predict(x)
-        q0, q1 = np.abs(np.round(lower - mean, 2)), np.abs(np.round(mean - upper, 2))
+        q0, q1 = np.abs(np.round(lower - mean, 2)), np.abs(
+            np.round(mean - upper, 2)
+        )
         t, b = np.maximum(q0, q1), np.minimum(q0, q1)
         m = np.round(mean, 2)
         strs = [fmt_val_upper_lower(m, t, b) for m, t, b in zip(m, t, b)]
@@ -99,7 +105,10 @@ class Model(ABC, ModelMetrics):
         """Preprocess the input."""
         # return self.scaler.transform(inputs)
         return inputs
-    def _preprocess_and_split_data(self, input, output, unc=None, test_size=0.2):
+
+    def _preprocess_and_split_data(
+        self, input, output, unc=None, test_size=0.2
+    ):
         """
         Preprocess and split data into training and testing sets.
         :param input:
@@ -124,7 +133,9 @@ class Model(ABC, ModelMetrics):
 
         # check that input and output are tensors (len(shape) > 1)
         if len(input_scaled.shape) < 2 or len(output.shape) < 2:
-            raise ValueError("Input and output must be tensors (len(shape) > 1)")
+            raise ValueError(
+                "Input and output must be tensors (len(shape) > 1)"
+            )
 
         (train_in, test_in, train_out, test_out) = train_test_split(
             input_scaled, output, test_size=test_size
@@ -142,9 +153,10 @@ class Model(ABC, ModelMetrics):
             f"Training surrogate In({train_in.shape})-->Out({train_out.shape}) [testing:{len(test_out)}]"
         )
 
-
         return train_in, test_in, train_out, test_out, train_unc, test_unc
 
     def plot_diagnostics(self, train_data, test_data, savedir, extra_kwgs={}):
         """Plot diagnostics for the model."""
-        plot_model_diagnostics(self, train_data, test_data, savedir, extra_kwgs)
+        plot_model_diagnostics(
+            self, train_data, test_data, savedir, extra_kwgs
+        )

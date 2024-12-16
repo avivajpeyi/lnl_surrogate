@@ -10,7 +10,9 @@ TEST_COL = "tab:red"
 TRUE_COL = "tab:orange"
 
 
-def plot_model_diagnostics(model, train_data, test_data, savedir: str = None, kwgs={}):
+def plot_model_diagnostics(
+    model, train_data, test_data, savedir: str = None, kwgs={}
+):
     """Plot the training results."""
 
     kwgs["model_col"] = kwgs.get("model_col", MODEL_COL)
@@ -25,7 +27,9 @@ def plot_model_diagnostics(model, train_data, test_data, savedir: str = None, kw
     plot_error_hist(model, train_data, test_data, fname3, kwgs)
 
     horizontal_concat(
-        [fname1, fname2, fname3], f"{savedir}/model_diagnostic.png", rm_orig=True
+        [fname1, fname2, fname3],
+        f"{savedir}/model_diagnostic.png",
+        rm_orig=True,
     )
 
 
@@ -85,7 +89,9 @@ def plot_model_predictive_check(model, train_data, test_data, fname, kwgs):
         if "labels" in kwgs:
             ax.legend(kwgs["labels"][0])
         if "truths" in kwgs:
-            ax.vlines(kwgs["truths"][0], 0, 1, color="tab:orange", linestyle="--")
+            ax.vlines(
+                kwgs["truths"][0], 0, 1, color="tab:orange", linestyle="--"
+            )
         ax.legend()
         ax.set_title("Predictive Check")
         fig.tight_layout()
@@ -127,7 +133,13 @@ def __plot_1d_model(model, ax, train_data, kwgs):
     data_col = kwgs.get("data_col", TRAIN_COL)
     ax.fill_between(xlin, pred_low, pred_up, color=model_col, alpha=0.2)
     ax.plot(xlin, pred_y, color=model_col, label="Model")
-    ax.plot(train_data[0], train_data[1], "o", color=data_col, label="Training Data")
+    ax.plot(
+        train_data[0],
+        train_data[1],
+        "o",
+        color=data_col,
+        label="Training Data",
+    )
     ax.set_xlabel("Input")
     ax.set_ylabel("Output")
 
