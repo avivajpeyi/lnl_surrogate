@@ -17,7 +17,7 @@ def change_width_proportionally(img, height):
     hpercent = height / img.size[1]
     proportional_width = int(img.size[0] * hpercent)
     return img.resize((proportional_width, height))
-    #return img.resize((proportional_width, height), Image.ANTIALIAS)
+    # return img.resize((proportional_width, height), Image.ANTIALIAS)
 
 
 def make_same_width(image_list):

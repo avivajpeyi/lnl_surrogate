@@ -8,23 +8,22 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .logger import logger
 from .data_cache import DataCache
+from .logger import logger
 from .models import ModelType
 from .models.base_model import Model
 
 
 def get_surrogate_model(
-        model_class: Union[str, ModelType],
-        model_dir: str,
-        training_data_cache: Optional[DataCache] = None,
-        clean=False,
+    model_class: Union[str, ModelType],
+    model_dir: str,
+    training_data_cache: Optional[DataCache] = None,
+    clean=False,
 ):
     """
     Get the ML surrogate model
     """
     model_class = ModelType.from_str(model_class)
-
 
     if clean and model_class.saved_model_exists(model_dir):
         shutil.rmtree(model_dir)
@@ -50,7 +49,9 @@ def get_surrogate_model(
     logger.info(f"Surrogate metrics: {metrics}")
 
     # check if true lnl inside the range of pred_lnl
-    pred_lnl = np.array(model_class(training_data_cache.true_param_vals)).ravel()
+    pred_lnl = np.array(
+        model_class(training_data_cache.true_param_vals)
+    ).ravel()
     check = (pred_lnl[0] <= tru_lnl) & (tru_lnl <= pred_lnl[2])
     diff = np.max(
         [np.abs(pred_lnl[1] - pred_lnl[0]), np.abs(pred_lnl[1] - pred_lnl[2])]
