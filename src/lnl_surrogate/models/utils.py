@@ -6,6 +6,7 @@ from ..logger import logger
 def fmt_val_upper_lower(val: float, up: float, low: float) -> str:
     return f"{val}^{{+{up}}}_{{-{low}}}"
 
+
 def signal_wrapper(method):
     """
     Decorator to wrap a method of a class to set system signals before running
@@ -25,9 +26,15 @@ def signal_wrapper(method):
 
     def wrapped(self, *args, **kwargs):
         try:
-            old_term = signal.signal(signal.SIGTERM, self.write_current_state_and_exit)
-            old_int = signal.signal(signal.SIGINT, self.write_current_state_and_exit)
-            old_alarm = signal.signal(signal.SIGALRM, self.write_current_state_and_exit)
+            old_term = signal.signal(
+                signal.SIGTERM, self.write_current_state_and_exit
+            )
+            old_int = signal.signal(
+                signal.SIGINT, self.write_current_state_and_exit
+            )
+            old_alarm = signal.signal(
+                signal.SIGALRM, self.write_current_state_and_exit
+            )
             _set = True
         except (AttributeError, ValueError):
             _set = False
@@ -44,4 +51,3 @@ def signal_wrapper(method):
         return output
 
     return wrapped
-

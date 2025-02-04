@@ -1,5 +1,6 @@
-from lnl_surrogate.data_cache import DataCache
 import numpy as np
+
+from lnl_surrogate.data_cache import DataCache
 
 
 def _fake_data():

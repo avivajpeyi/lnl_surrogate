@@ -1,4 +1,3 @@
-
 import os
 import pickle
 from typing import Optional
@@ -17,9 +16,12 @@ MODEL_SAVE_FILE = "model.pkl"
 
 class SklearnMlpModel(Model):
     """Scikit-learn MLP (multilayer perceptron) surrogate model"""
+
     def __init__(self):
         super().__init__()
-        self.kernel = 1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3))
+        self.kernel = 1.0 * RBF(
+            length_scale=1.0, length_scale_bounds=(1e-2, 1e3)
+        )
 
         # # diff between every pair of train_out values
         # err = np.min(np.diff(train_out, axis=0) ** 2)
@@ -38,12 +40,12 @@ class SklearnMlpModel(Model):
         )
 
     def train(
-            self,
-            inputs: np.ndarray,
-            outputs: np.ndarray,
-            verbose: Optional[bool] = False,
-            savedir: Optional[str] = None,
-            extra_kwgs={},
+        self,
+        inputs: np.ndarray,
+        outputs: np.ndarray,
+        verbose: Optional[bool] = False,
+        savedir: Optional[str] = None,
+        extra_kwgs={},
     ) -> None:
         """Train the model.
 
@@ -85,7 +87,7 @@ class SklearnMlpModel(Model):
         # x_scaled = self._preprocess_input(x)
         x_scaled = x  # TODO: bug with scaling -- i might be scaling twice
         y_mean, y_std = self._model.predict(x_scaled, return_std=True)
-        y_var = y_std ** 2
+        y_var = y_std**2
         y_lower = y_mean - 1.96 * np.sqrt(y_var)
         y_upper = y_mean + 1.96 * np.sqrt(y_var)
         return y_lower, y_mean, y_upper

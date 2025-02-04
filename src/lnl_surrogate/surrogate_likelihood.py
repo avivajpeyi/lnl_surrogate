@@ -1,10 +1,11 @@
 import numpy as np
+
 # from bilby.core.likelihood import Likelihood
 
 # from .models.model import Model
 
 
-class SurrogateLikelihood():
+class SurrogateLikelihood:
     def __init__(self, lnl_surrogate: "Model", parameter_keys: list):
         super().__init__({k: 0 for k in parameter_keys})
         self.param_keys = parameter_keys
